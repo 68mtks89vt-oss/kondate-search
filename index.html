@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>余りもの2品から献立</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: linear-gradient(135deg, #fff8ed, #eef7f0);
+  color: #333;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 30px 18px 50px;
+}
+
+.hero {
+  text-align: center;
+  padding: 25px 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 30px;
+  color: #496b50;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: #777;
+  font-size: 14px;
+}
+
+.card {
+  background: rgba(255,255,255,0.92);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 12px 0 7px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 15px;
+  border: none;
+  border-radius: 14px;
+  background: #6d9b73;
+  color: white;
+  font-size: 17px;
+  font-weight: bold;
+}
+
+button:active {
+  opacity: 0.8;
+}
+
+#result {
+  margin-top: 22px;
+}
+
+.menu {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 15px;
+  border-left: 5px solid #7da883;
+}
+
+.menu h2 {
+  margin-top: 0;
+  color: #496b50;
+  font-size: 20px;
+}
+
+.menu p {
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.small {
+  color: #888;
+  font-size: 13px;
+  margin-top: 25px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="hero">
+    <h1>🍳 余りもの2品から献立</h1>
+    <div class="subtitle">
+      冷蔵庫にある食材を2つ入れるだけ
+    </div>
+  </div>
+
+  <div class="card">
+
+    <label>余っている食材①</label>
+    <input id="food1" placeholder="例：鶏肉">
+
+    <label>余っている食材②</label>
+    <input id="food2" placeholder="例：玉ねぎ">
+
+    <button onclick="searchMenu()">献立を探す</button>
+
+    <div id="result"></div>
+
+  </div>
+
+  <div class="small">
+    冷蔵庫の余りものを、おいしい一皿に。
+  </div>
+
+</div>
+
+<script>
+
+const menus = [
+
+  {
+    name: "鶏肉と玉ねぎの照り焼き",
+    foods: ["鶏肉", "玉ねぎ", "しょうゆ", "みりん", "砂糖"],
+    text: "鶏肉と玉ねぎを焼き、しょうゆ・みりん・砂糖で甘辛く仕上げます。ご飯によく合う定番おかずです。"
+  },
+
+  {
+    name: "豚肉とキャベツの炒め物",
+    foods: ["豚肉", "キャベツ", "しょうゆ", "塩", "こしょう"],
+    text: "豚肉とキャベツを炒め、しょうゆと塩こしょうで味付け。短時間で作れる簡単メニューです。"
+  },
+
+  {
+    name: "じゃがいもと玉ねぎの肉じゃが",
+    foods: ["じゃがいも", "玉ねぎ", "牛肉", "しょうゆ", "みりん"],
+    text: "じゃがいもと玉ねぎを牛肉と一緒に煮込みます。家庭料理の定番です。"
+  },
+
+  {
+    name: "鮭ときのこのバター醤油",
+    foods: ["鮭", "きのこ", "バター", "しょうゆ"],
+    text: "鮭ときのこを焼き、バターとしょうゆで香ばしく仕上げます。"
+  },
+
+  {
+    name: "卵と玉ねぎの親子風丼",
+    foods: ["卵", "玉ねぎ", "鶏肉", "しょうゆ", "みりん"],
+    text: "鶏肉と玉ねぎを煮て卵でとじ、ご飯にのせれば完成です。"
+  },
+
+  {
+    name: "豚肉ともやしの簡単炒め",
+    foods: ["豚肉", "もやし", "しょうゆ", "塩", "こしょう"],
+    text: "豚肉ともやしを強火で炒め、シンプルに味付けします。"
+  }
+
+];
+
+function searchMenu() {
+
+  const food1 = document.getElementById("food1").value.trim();
+  const food2 = document.getElementById("food2").value.trim();
+  const result = document.getElementById("result");
+
+  if (!food1 || !food2) {
+    result.innerHTML =
+      "<p>食材を2つ入力してください😊</p>";
+    return;
+  }
+
+  const matches = menus.filter(menu =>
+    menu.foods.some(food => food.includes(food1)) &&
+    menu.foods.some(food => food.includes(food2))
+  );
+
+  if (matches.length === 0) {
+    result.innerHTML =
+      "<div class='menu'><h2>🍽️ 献立が見つかりませんでした</h2>" +
+      "<p>別の食材でもう一度探してみてください。</p></div>";
+    return;
+  }
+
+  result.innerHTML = matches.map(menu => `
+    <div class="menu">
+      <h2>${menu.name}</h2>
+      <p>${menu.text}</p>
+      <p><strong>材料：</strong>${menu.foods.join("・")}</p>
+    </div>
+  `).join("");
+
+}
+
+</script>
+
+</body>
+</html>
