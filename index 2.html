@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f7fff7">
+<title>余りもの2品から献立</title>
+<style>
+:root {
+  --green:#167a54; --green2:#35aa76; --cream:#fffaf1; --text:#27332f;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  background:
+    radial-gradient(circle at 10% 5%, rgba(255,211,92,.30), transparent 28%),
+    radial-gradient(circle at 90% 12%, rgba(81,190,132,.23), transparent 30%),
+    linear-gradient(180deg,#fafff8 0%,#fffaf1 50%,#f4fbf7 100%);
+}
+.hero{
+  position:relative; overflow:hidden; text-align:center;
+  padding:52px 18px 38px;
+  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(241,255,244,.90));
+  border-bottom:1px solid rgba(22,122,84,.08);
+}
+.food-art{font-size:35px; letter-spacing:5px; margin-bottom:10px; filter:drop-shadow(0 4px 6px rgba(0,0,0,.08))}
+.hero h1{margin:0;color:var(--green);font-size:clamp(28px,7vw,44px);line-height:1.25}
+.hero p{margin:12px auto 0;max-width:540px;font-size:16px;font-weight:700;color:#4c5c55}
+.container{width:min(92%,720px);margin:24px auto 50px}
+.card{
+  background:rgba(255,255,255,.94); border:1px solid rgba(22,122,84,.09);
+  border-radius:24px; padding:22px; margin:18px 0;
+  box-shadow:0 12px 32px rgba(40,85,66,.10)
+}
+.search-title{font-size:19px;font-weight:800;margin:0 0 14px;color:#245c48}
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input{
+  width:100%;padding:15px 14px;border:1.5px solid #dbe9e1;border-radius:14px;
+  background:#fff;font-size:16px;outline:none
+}
+input:focus{border-color:#63bd92;box-shadow:0 0 0 4px rgba(53,170,118,.10)}
+button,.link-btn{
+  width:100%;display:block;border:0;border-radius:15px;padding:15px 16px;
+  font-weight:800;font-size:16px;text-decoration:none;text-align:center;cursor:pointer
+}
+.main-btn{margin-top:12px;background:linear-gradient(135deg,var(--green2),var(--green));color:white;box-shadow:0 8px 18px rgba(22,122,84,.18)}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{width:auto;padding:9px 12px;border:1px solid #dcebe3;background:#f7fcf9;color:#32634f;font-size:13px}
+.result{display:none}
+.badge{display:inline-block;background:#e8f8ef;color:#15724f;padding:6px 10px;border-radius:999px;font-size:13px;font-weight:700}
+.recipe-title{margin:10px 0 14px;color:#14744f;font-size:25px}
+h3{color:#205e47;margin-bottom:8px}
+li{margin:6px 0;line-height:1.6}
+.empty{display:none;text-align:center}
+.links{display:grid;gap:12px}
+.amazon{background:linear-gradient(135deg,#ffe08a,#ffc857);color:#473500}
+.coconala{background:linear-gradient(135deg,#70d8c7,#3bb6a3);color:white}
+.note{font-size:12px;color:#7a837f;line-height:1.6;margin-bottom:0}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini-card{background:#f8fcfa;border-radius:18px;padding:16px}
+.mini-card strong{display:block;color:#1b6c4d;margin-bottom:5px}
+footer{text-align:center;padding:28px 12px 40px;color:#718078;font-size:12px}
+@media(max-width:560px){
+  .inputs,.mini-grid{grid-template-columns:1fr}
+  .hero{padding-top:40px}
+  .card{padding:18px}
+}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="food-art">🥬 🍅 🥕 🦐 🐟 🫑</div>
+  <h1>余りもの2品から献立</h1>
+  <p>冷蔵庫にある食材を2つ入力するだけ。今日の「何作ろう？」をかんたんに。</p>
+</header>
+
+<main class="container">
+  <section class="card">
+    <p class="search-title">🍳 食材を2つ入力してください</p>
+    <div class="inputs">
+      <input id="food1" placeholder="例：卵" autocomplete="off">
+      <input id="food2" placeholder="例：玉ねぎ" autocomplete="off">
+    </div>
+    <button class="main-btn" onclick="searchRecipe()">献立を探す</button>
+    <div class="quick">
+      <button class="chip" onclick="setFoods('卵','玉ねぎ')">卵＋玉ねぎ</button>
+      <button class="chip" onclick="setFoods('豚肉','キャベツ')">豚肉＋キャベツ</button>
+      <button class="chip" onclick="setFoods('鮭','じゃがいも')">鮭＋じゃがいも</button>
+    </div>
+  </section>
+
+  <section id="result" class="card result">
+    <span class="badge">おすすめ献立</span>
+    <h2 id="recipeName" class="recipe-title"></h2>
+    <h3>🛒 材料</h3>
+    <ul id="ingredients"></ul>
+    <h3>👨‍🍳 作り方</h3>
+    <ol id="steps"></ol>
+    <button class="main-btn" onclick="searchRecipe()">別の献立を見る</button>
+  </section>
+
+  <section id="empty" class="card empty">
+    <h3>まだ登録されていない組み合わせです</h3>
+    <p>別の食材名を試してみてください。今後さらに献立を増やしていけます。</p>
+  </section>
+
+  <section class="card">
+    <h3>✨ このサイトでできること</h3>
+    <div class="mini-grid">
+      <div class="mini-card"><strong>30種類の献立</strong>身近な食材の組み合わせから検索できます。</div>
+      <div class="mini-card"><strong>スマホで簡単</strong>iPhoneでも見やすい大きな入力欄とボタン。</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>🛒 料理に役立つおすすめ商品</h3>
+    <p>調理器具やキッチン用品を紹介するスペースです。</p>
+    <div class="links">
+      <a class="link-btn amazon" href="https://www.amazon.co.jp/" target="_blank" rel="noopener">Amazonおすすめを見る</a>
+    </div>
+    <p class="note">※Amazonアソシエイト登録後、あなた専用のリンクへ差し替えできます。</p>
+  </section>
+
+  <section class="card">
+    <h3>🍽 料理の相談はこちら</h3>
+    <p>ココナラの料理サービスへ案内するスペースです。</p>
+    <a class="link-btn coconala" href="https://coconala.com/" target="_blank" rel="noopener">ココナラを見る</a>
+    <p class="note">※あとであなたのココナラサービスURLへ差し替えできます。</p>
+  </section>
+</main>
+
+<footer>© 2026 余りもの2品から献立</footer>
+
+<script>
+const recipes = [{"foods": ["卵", "玉ねぎ"], "name": "ふわとろ卵と玉ねぎの丼", "ingredients": ["卵 2個", "玉ねぎ 1/2個", "ご飯 1杯", "しょうゆ 大さじ1", "みりん 大さじ1", "砂糖 小さじ1"], "steps": ["玉ねぎを薄切りにする", "フライパンで玉ねぎと調味料を煮る", "溶き卵を回し入れる", "半熟で火を止め、ご飯にのせる"]}, {"foods": ["卵", "キャベツ"], "name": "キャベツと卵のふんわり炒め", "ingredients": ["卵 2個", "キャベツ 2〜3枚", "塩 少々", "こしょう 少々", "ごま油 小さじ1"], "steps": ["キャベツを食べやすく切る", "卵をふんわり炒めて取り出す", "キャベツを炒める", "卵を戻して塩こしょうで整える"]}, {"foods": ["卵", "じゃがいも"], "name": "じゃがいものスペイン風オムレツ", "ingredients": ["卵 3個", "じゃがいも 1個", "塩 少々", "こしょう 少々", "油 適量"], "steps": ["じゃがいもを薄切りにする", "フライパンで火を通す", "溶き卵を流し入れる", "弱火で両面を焼く"]}, {"foods": ["卵", "トマト"], "name": "トマトと卵の中華炒め", "ingredients": ["卵 2個", "トマト 1個", "鶏ガラスープの素 小さじ1", "塩 少々", "油 適量"], "steps": ["トマトをくし切りにする", "卵を半熟に炒めて取り出す", "トマトをさっと炒める", "卵を戻して味を整える"]}, {"foods": ["豚肉", "キャベツ"], "name": "豚肉とキャベツの味噌炒め", "ingredients": ["豚肉 150g", "キャベツ 3枚", "味噌 大さじ1", "みりん 大さじ1", "しょうゆ 小さじ1"], "steps": ["豚肉とキャベツを切る", "豚肉を炒める", "キャベツを加える", "調味料を絡める"]}, {"foods": ["豚肉", "玉ねぎ"], "name": "豚肉の生姜焼き", "ingredients": ["豚肉 150g", "玉ねぎ 1/2個", "しょうゆ 大さじ1", "みりん 大さじ1", "しょうが 適量"], "steps": ["玉ねぎを薄切りにする", "豚肉を焼く", "玉ねぎを加える", "調味料を絡めて照りを出す"]}, {"foods": ["豚肉", "もやし"], "name": "豚もやしのスタミナ炒め", "ingredients": ["豚肉 150g", "もやし 1袋", "しょうゆ 大さじ1", "にんにく 少々", "ごま油 小さじ1"], "steps": ["豚肉を炒める", "もやしを加える", "調味料を加える", "強火でさっと仕上げる"]}, {"foods": ["豚肉", "白菜"], "name": "豚肉と白菜のうま煮", "ingredients": ["豚肉 150g", "白菜 3枚", "しょうゆ 大さじ1", "鶏ガラスープの素 小さじ1", "水 100ml"], "steps": ["白菜と豚肉を切る", "豚肉を炒める", "白菜と水を加える", "調味料を入れて煮る"]}, {"foods": ["鶏肉", "玉ねぎ"], "name": "鶏肉と玉ねぎの照り焼き", "ingredients": ["鶏肉 200g", "玉ねぎ 1/2個", "しょうゆ 大さじ1", "みりん 大さじ1", "砂糖 小さじ1"], "steps": ["鶏肉を皮目から焼く", "玉ねぎを加える", "調味料を入れる", "照りが出るまで煮絡める"]}, {"foods": ["鶏肉", "じゃがいも"], "name": "鶏じゃが", "ingredients": ["鶏肉 150g", "じゃがいも 2個", "しょうゆ 大さじ1", "砂糖 大さじ1", "みりん 大さじ1"], "steps": ["材料を食べやすく切る", "鶏肉を炒める", "じゃがいもと水を加える", "調味料を加えて煮込む"]}, {"foods": ["鶏肉", "キャベツ"], "name": "鶏肉とキャベツの塩炒め", "ingredients": ["鶏肉 150g", "キャベツ 3枚", "塩 少々", "鶏ガラスープの素 小さじ1"], "steps": ["鶏肉を焼く", "キャベツを加える", "調味料を加える", "しんなりするまで炒める"]}, {"foods": ["鶏肉", "大根"], "name": "鶏肉と大根の煮物", "ingredients": ["鶏肉 150g", "大根 1/4本", "しょうゆ 大さじ2", "みりん 大さじ1", "砂糖 大さじ1"], "steps": ["大根をいちょう切りにする", "鶏肉を炒める", "大根と水を加える", "調味料を入れて柔らかく煮る"]}, {"foods": ["鮭", "じゃがいも"], "name": "鮭とじゃがいものバター焼き", "ingredients": ["鮭 1切れ", "じゃがいも 1個", "バター 10g", "塩 少々", "こしょう 少々"], "steps": ["じゃがいもを薄切りにする", "鮭を焼く", "じゃがいもを加える", "バターを絡める"]}, {"foods": ["鮭", "キャベツ"], "name": "鮭とキャベツの味噌蒸し", "ingredients": ["鮭 1切れ", "キャベツ 3枚", "味噌 大さじ1", "みりん 大さじ1"], "steps": ["キャベツを敷く", "鮭をのせる", "味噌とみりんをかける", "ふたをして蒸し焼きにする"]}, {"foods": ["鮭", "玉ねぎ"], "name": "鮭と玉ねぎのホイル焼き", "ingredients": ["鮭 1切れ", "玉ねぎ 1/2個", "バター 10g", "塩こしょう 少々"], "steps": ["玉ねぎを薄切りにする", "ホイルに玉ねぎと鮭をのせる", "バターをのせて包む", "フライパンで蒸し焼きにする"]}, {"foods": ["えび", "ブロッコリー"], "name": "えびとブロッコリーのガーリック炒め", "ingredients": ["えび 100g", "ブロッコリー 1/2株", "にんにく 少々", "塩 少々", "オリーブ油 適量"], "steps": ["ブロッコリーを下ゆでする", "えびを炒める", "ブロッコリーを加える", "にんにくと塩で味付けする"]}, {"foods": ["えび", "卵"], "name": "えび玉", "ingredients": ["えび 100g", "卵 2個", "塩 少々", "鶏ガラスープの素 小さじ1"], "steps": ["えびを炒める", "溶き卵を加える", "大きく混ぜる", "半熟になったら火を止める"]}, {"foods": ["ツナ", "玉ねぎ"], "name": "ツナ玉ねぎ丼", "ingredients": ["ツナ缶 1缶", "玉ねぎ 1/2個", "ご飯 1杯", "マヨネーズ 適量", "しょうゆ 少々"], "steps": ["玉ねぎを薄切りにする", "ツナと玉ねぎを混ぜる", "マヨネーズとしょうゆで味付けする", "ご飯にのせる"]}, {"foods": ["ツナ", "キャベツ"], "name": "ツナキャベツ炒め", "ingredients": ["ツナ 1缶", "キャベツ 3枚", "しょうゆ 小さじ1", "塩こしょう 少々"], "steps": ["キャベツを切る", "ツナを炒める", "キャベツを加える", "しょうゆと塩こしょうで味付けする"]}, {"foods": ["豆腐", "ひき肉"], "name": "簡単麻婆豆腐", "ingredients": ["豆腐 1丁", "ひき肉 100g", "味噌 大さじ1", "しょうゆ 大さじ1", "豆板醤 少々"], "steps": ["ひき肉を炒める", "調味料を加える", "豆腐を加える", "崩さないように煮る"]}, {"foods": ["豆腐", "白菜"], "name": "豆腐と白菜のとろとろ煮", "ingredients": ["豆腐 1丁", "白菜 3枚", "だし 200ml", "しょうゆ 大さじ1", "片栗粉 小さじ1"], "steps": ["白菜を切る", "だしで白菜を煮る", "豆腐を加える", "水溶き片栗粉でとろみを付ける"]}, {"foods": ["豆腐", "卵"], "name": "豆腐のふんわり卵とじ", "ingredients": ["豆腐 1/2丁", "卵 2個", "だし 100ml", "しょうゆ 大さじ1", "みりん 大さじ1"], "steps": ["豆腐を食べやすく切る", "だしと調味料で煮る", "溶き卵を回し入れる", "ふたをして半熟に仕上げる"]}, {"foods": ["じゃがいも", "玉ねぎ"], "name": "じゃがいもと玉ねぎの甘辛炒め", "ingredients": ["じゃがいも 2個", "玉ねぎ 1/2個", "しょうゆ 大さじ1", "みりん 大さじ1", "砂糖 小さじ1"], "steps": ["じゃがいもを細切りにする", "玉ねぎを薄切りにする", "両方を炒める", "調味料を絡める"]}, {"foods": ["じゃがいも", "ベーコン"], "name": "じゃがベーコン", "ingredients": ["じゃがいも 2個", "ベーコン 2枚", "バター 10g", "塩こしょう 少々"], "steps": ["じゃがいもをレンジで加熱する", "ベーコンを炒める", "じゃがいもを加える", "バターと塩こしょうで仕上げる"]}, {"foods": ["キャベツ", "ウインナー"], "name": "キャベツとウインナーのコンソメ炒め", "ingredients": ["キャベツ 3枚", "ウインナー 4本", "コンソメ 小さじ1", "こしょう 少々"], "steps": ["材料を切る", "ウインナーを炒める", "キャベツを加える", "コンソメとこしょうで味付けする"]}, {"foods": ["もやし", "卵"], "name": "もやしの卵あんかけ", "ingredients": ["もやし 1袋", "卵 2個", "鶏ガラスープの素 小さじ1", "しょうゆ 小さじ1", "片栗粉 小さじ1"], "steps": ["もやしを炒める", "卵を流し入れる", "調味料を加える", "水溶き片栗粉で軽くとろみを付ける"]}, {"foods": ["なす", "ひき肉"], "name": "なすとひき肉の甘辛炒め", "ingredients": ["なす 2本", "ひき肉 100g", "しょうゆ 大さじ1", "みりん 大さじ1", "砂糖 小さじ1"], "steps": ["なすを乱切りにする", "ひき肉を炒める", "なすを加える", "調味料を絡める"]}, {"foods": ["ピーマン", "ひき肉"], "name": "ピーマンのそぼろ炒め", "ingredients": ["ピーマン 3個", "ひき肉 100g", "しょうゆ 大さじ1", "砂糖 小さじ1", "ごま油 少々"], "steps": ["ピーマンを細切りにする", "ひき肉を炒める", "ピーマンを加える", "調味料で味付けする"]}, {"foods": ["大根", "ツナ"], "name": "大根とツナのさっぱり煮", "ingredients": ["大根 1/4本", "ツナ 1缶", "だし 200ml", "しょうゆ 大さじ1", "みりん 大さじ1"], "steps": ["大根をいちょう切りにする", "だしで大根を煮る", "ツナを加える", "しょうゆとみりんで味を整える"]}, {"foods": ["きのこ", "ベーコン"], "name": "きのことベーコンのバター醤油炒め", "ingredients": ["お好みのきのこ 1パック", "ベーコン 2枚", "バター 10g", "しょうゆ 小さじ1", "こしょう 少々"], "steps": ["きのこをほぐす", "ベーコンを炒める", "きのこを加える", "バターとしょうゆで仕上げる"]}];
+
+const normalize = s => s.trim().replace(/\s+/g,'').toLowerCase();
+
+function setFoods(a,b){
+  document.getElementById('food1').value=a;
+  document.getElementById('food2').value=b;
+  searchRecipe();
+}
+
+function searchRecipe(){
+  const a=normalize(document.getElementById('food1').value);
+  const b=normalize(document.getElementById('food2').value);
+  const result=document.getElementById('result');
+  const empty=document.getElementById('empty');
+
+  result.style.display='none';
+  empty.style.display='none';
+
+  if(!a || !b){
+    empty.style.display='block';
+    empty.querySelector('h3').textContent='食材を2つ入力してください';
+    empty.querySelector('p').textContent='例：卵 ＋ 玉ねぎ';
+    empty.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  const matches=recipes.filter(r=>{
+    const f=r.foods.map(normalize);
+    return f.includes(a) && f.includes(b);
+  });
+
+  if(matches.length===0){
+    empty.style.display='block';
+    empty.querySelector('h3').textContent='まだ登録されていない組み合わせです';
+    empty.querySelector('p').textContent='別の食材名を試してみてください。';
+    empty.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  const r=matches[Math.floor(Math.random()*matches.length)];
+  document.getElementById('recipeName').textContent=r.name;
+  document.getElementById('ingredients').innerHTML=r.ingredients.map(x=>`<li>${x}</li>`).join('');
+  document.getElementById('steps').innerHTML=r.steps.map(x=>`<li>${x}</li>`).join('');
+  result.style.display='block';
+  result.scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>
